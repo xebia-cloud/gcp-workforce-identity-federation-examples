@@ -2,17 +2,17 @@
 resource "google_iam_workforce_pool" "example_oidc" {
   parent            = var.organization_id
   location          = "global"
-  workforce_pool_id = "example-100"
-  display_name      = "example-100"
+  workforce_pool_id = "example-oidc"
+  display_name      = "example-oidc"
 }
 
 
 ## Google workforce pool provider
-resource "google_iam_workforce_pool_provider" "example_oidc_implicit" {
+resource "google_iam_workforce_pool_provider" "example_oidc_code" {
   workforce_pool_id = google_iam_workforce_pool.example_oidc.workforce_pool_id
   location          = "global"
-  provider_id       = "implicit"
-  display_name      = "implicit"
+  provider_id       = "code"
+  display_name      = "code"
 
   attribute_mapping = {
     "google.subject"      = "assertion.oid"    # Use 'object id' as subject, use 'sub' to bind to id composed of application and directory
@@ -51,9 +51,9 @@ resource "azuread_application" "workforce_identity_federation" {
       id_token_issuance_enabled = true
     }
 
-    # for federated console access using https://auth.cloud.google/signin/workforcePools/${google_iam_workforce_pool.example_oidc.name}/providers/implicit?continueUrl=https://console.cloud.google/
+    # for federated console access using https://auth.cloud.google/signin/workforcePools/${google_iam_workforce_pool.example_oidc.name}/providers/code?continueUrl=https://console.cloud.google/
     redirect_uris = [
-      "https://auth.cloud.google/signin-callback/${google_iam_workforce_pool.example_oidc.name}/providers/implicit",
+      "https://auth.cloud.google/signin-callback/${google_iam_workforce_pool.example_oidc.name}/providers/code",
     ]
   }
 
