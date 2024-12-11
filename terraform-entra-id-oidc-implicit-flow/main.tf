@@ -44,11 +44,6 @@ resource "azuread_application" "workforce_identity_federation" {
     implicit_grant {
       id_token_issuance_enabled = true
     }
-
-    # for federated console access using https://auth.cloud.google/signin/workforcePools/${google_iam_workforce_pool.example_oidc.name}/providers/implicit?continueUrl=https://console.cloud.google/
-    redirect_uris = [
-      "https://auth.cloud.google/signin-callback/${google_iam_workforce_pool.example_oidc.name}/providers/implicit",
-    ]
   }
 
   # Include security groups in 'groups' attribute.
@@ -61,7 +56,8 @@ resource "azuread_application" "workforce_identity_federation" {
 
   lifecycle {
     ignore_changes = [
-      required_resource_access,
+      required_resource_access, # managed using azuread_application_api_access.workforce_identity_federation
+      web[0].redirect_uris,     # managed using azuread_application_redirect_uris.workforce_identity_federation_web
     ]
   }
 }
@@ -101,6 +97,16 @@ resource "azuread_service_principal_delegated_permission_grant" "workforce_ident
   claim_values                         = local.default_scopes
 }
 
+
+# Allow redirect to workforce identity pool provider
+resource "azuread_application_redirect_uris" "workforce_identity_federation_web" {
+  application_id = azuread_application.workforce_identity_federation.id
+  type           = "Web"
+
+  redirect_uris = [
+    "https://auth.cloud.google/signin-callback/${google_iam_workforce_pool_provider.example_oidc_implicit.name}",
+  ]
+}
 
 ## Grant google workforce pool permission to browse resource hierarchy
 resource "google_organization_iam_member" "example_oidc_organization_browser" {
